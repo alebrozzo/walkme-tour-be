@@ -1,7 +1,7 @@
 import express from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import rateLimit from 'express-rate-limit';
-import cityRoutes from './routes/city.routes.js';
+import citiesRouter from './routes/cities.js';
 
 const app = express();
 
@@ -16,7 +16,7 @@ const limiter = rateLimit({
 
 app.use(limiter);
 
-app.use('/api', cityRoutes);
+app.use('/api/cities', citiesRouter);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {

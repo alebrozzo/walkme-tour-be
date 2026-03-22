@@ -1,7 +1,7 @@
 import type { Tour, Stop } from '../types/tour.js';
-import type { TourDoc, StopDoc } from '../models/tour.model.js';
-import { TourModel } from '../models/tour.model.js';
-import { generateTour } from './gemini.service.js';
+import type { TourDoc, StopDoc } from '../models/tour.js';
+import { TourModel } from '../models/tour.js';
+import { generateTour } from './gemini.js';
 
 function stopDocToStop(doc: StopDoc): Stop {
   const stop: Stop = {

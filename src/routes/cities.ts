@@ -1,7 +1,9 @@
-import type { Request, Response, NextFunction } from 'express';
-import { getOrCreateTour } from '../services/tour.service.js';
+import { Router } from 'express';
+import { getOrCreateTour } from '../services/tour.js';
 
-export async function getCityTour(req: Request, res: Response, next: NextFunction): Promise<void> {
+const router = Router();
+
+router.get('/', async (req, res) => {
   const { placeId, name, country } = req.query;
 
   if (!placeId || !name || !country) {
@@ -14,10 +16,8 @@ export async function getCityTour(req: Request, res: Response, next: NextFunctio
     return;
   }
 
-  try {
-    const tour = await getOrCreateTour(placeId, name, country);
-    res.json(tour);
-  } catch (err) {
-    next(err);
-  }
-}
+  const tour = await getOrCreateTour(placeId, name, country);
+  res.json(tour);
+});
+
+export default router;
