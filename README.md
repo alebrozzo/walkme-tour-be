@@ -60,11 +60,52 @@ GET /api/cities?placeId=ChIJD7fiBh9u5kcRYJSMaMOCCwQ&name=Paris&country=France
   "id": "ChIJD7fiBh9u5kcRYJSMaMOCCwQ",
   "city": "Paris",
   "country": "France",
-  "description": "...",
-  "duration": 210,
-  "distance": 7.2,
-  "difficulty": "moderate",
+  "description": "Discover the City of Light on foot...",
   "color": "#2C3E8C",
-  "stops": [ ... ]
+  "imageUrl": "https://...",
+  "stops": [
+    {
+      "id": "ChIJD7fiBh9u5kcRYJSMaMOCCwQ-1",
+      "name": "Eiffel Tower",
+      "address": "Champ de Mars, 5 Av. Anatole France, 75007 Paris",
+      "coordinate": { "latitude": 48.8584, "longitude": 2.2945 },
+      "type": "landmark",
+      "imageUrl": "https://...",
+      "description": "The iconic iron lattice tower...",
+      "duration": 45,
+      "price": "€17"
+    }
+  ]
 }
 ```
+
+#### `Tour` fields
+
+| Field         | Type      | Description                                     |
+| ------------- | --------- | ----------------------------------------------- |
+| `id`          | `string`  | Google Place ID of the city                     |
+| `city`        | `string`  | City name                                       |
+| `country`     | `string`  | Country name                                    |
+| `description` | `string`  | Short tour description                          |
+| `color`       | `string`  | Hex colour used for UI theming (e.g. `#2C3E8C`) |
+| `imageUrl`    | `string?` | Optional hero image URL                         |
+| `stops`       | `Stop[]`  | Ordered list of stops                           |
+
+#### `Stop` fields
+
+| Field         | Type                      | Description                                                  |
+| ------------- | ------------------------- | ------------------------------------------------------------ |
+| `id`          | `string`                  | Unique stop ID (`{placeId}-{order}`)                         |
+| `order`       | `number`                  | Position in the tour (1-based)                               |
+| `name`        | `string`                  | Stop name                                                    |
+| `address`     | `string`                  | Full street address                                          |
+| `coordinate`  | `{ latitude, longitude }` | GPS coordinates                                              |
+| `type`        | `StopType`                | Category — see below                                         |
+| `imageUrl`    | `string?`                 | Optional stop image URL                                      |
+| `description` | `string`                  | Detailed description of the place                            |
+| `duration`    | `number`                  | Recommended time to spend in minutes                         |
+| `price`       | `string?`                 | Entry price as display string e.g. `"€15"` (omitted if free) |
+
+#### `StopType` values
+
+`landmark` · `museum` · `neighborhood` · `temple` · `shrine` · `park` · `piazza` · `market` · `beach`
