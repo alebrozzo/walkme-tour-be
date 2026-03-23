@@ -3,21 +3,11 @@ import type { Schema } from '@google/generative-ai';
 import type { Tour, Stop, StopType } from '../types/tour.js';
 import { STOP_TYPES } from '../types/tour.js';
 
-interface RawStop {
-  name: string;
-  address: string;
-  coordinate: { latitude: number; longitude: number };
-  type: string;
-  description: string;
-  duration: number;
-  price?: string;
-}
-
-interface RawTour {
-  description: string;
-  color: string;
-  stops: RawStop[];
-}
+// RawStop/RawTour represent the Gemini response before validation:
+// stops lack `id`/`order` (assigned during transformation) and `type` is an
+// unvalidated string until confirmed against the STOP_TYPES list.
+type RawStop = Omit<Stop, 'id' | 'order' | 'type'> & { type: string };
+type RawTour = Pick<Tour, 'description' | 'color'> & { stops: RawStop[] };
 
 // Structured JSON schema enforced by Gemini — guarantees all required fields are present.
 const responseSchema: Schema = {

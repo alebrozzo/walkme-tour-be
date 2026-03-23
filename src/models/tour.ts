@@ -1,21 +1,5 @@
 import { Schema, model } from 'mongoose';
-import type { StopType } from '../types/tour.js';
-
-export interface StopDoc {
-  id: string;
-  order: number;
-  name: string;
-  address: string;
-  coordinate: {
-    latitude: number;
-    longitude: number;
-  };
-  type: StopType;
-  imageUrl?: string;
-  description: string;
-  duration: number;
-  price?: string;
-}
+import type { Stop } from '../types/tour.js';
 
 export interface TourDoc {
   _id: string;
@@ -24,7 +8,7 @@ export interface TourDoc {
   description: string;
   color: string;
   imageUrl?: string;
-  stops: StopDoc[];
+  stops: Stop[];
 }
 
 const coordinateSchema = new Schema(
@@ -35,7 +19,7 @@ const coordinateSchema = new Schema(
   { _id: false },
 );
 
-const stopSchema = new Schema<StopDoc>(
+const stopSchema = new Schema<Stop>(
   {
     id: { type: String, required: true },
     order: { type: Number, required: true },
