@@ -4,19 +4,19 @@ import { getOrCreateTour } from '../services/tour.js';
 const router = Router();
 
 router.get('/', async (req, res) => {
-  const { placeId, name, country } = req.query;
+  const { placeId } = req.query;
 
-  if (!placeId || !name || !country) {
-    res.status(400).json({ error: 'Missing required query parameters: placeId, name, country' });
+  if (!placeId) {
+    res.status(400).json({ error: 'Missing required query parameter: placeId' });
     return;
   }
 
-  if (typeof placeId !== 'string' || typeof name !== 'string' || typeof country !== 'string') {
-    res.status(400).json({ error: 'Query parameters placeId, name, and country must be strings' });
+  if (typeof placeId !== 'string') {
+    res.status(400).json({ error: 'Query parameter placeId must be a string' });
     return;
   }
 
-  const tour = await getOrCreateTour(placeId, name, country);
+  const tour = await getOrCreateTour(placeId);
   res.json(tour);
 });
 

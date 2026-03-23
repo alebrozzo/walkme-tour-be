@@ -2,6 +2,7 @@ import type { Tour } from '../types/tour.js';
 import type { TourDoc } from '../models/tour.js';
 import { TourModel } from '../models/tour.js';
 import { generateTour } from './gemini.js';
+import { getCityInfo } from './places.js';
 
 function tourDocToTour(doc: TourDoc): Tour {
   const tour: Tour = {
@@ -16,12 +17,13 @@ function tourDocToTour(doc: TourDoc): Tour {
   return tour;
 }
 
-export async function getOrCreateTour(placeId: string, name: string, country: string): Promise<Tour> {
+export async function getOrCreateTour(placeId: string): Promise<Tour> {
   const existing = await TourModel.findById(placeId).lean<TourDoc>();
   if (existing) {
     return tourDocToTour(existing);
   }
 
+  const { name, country } = await getCityInfo(placeId);
   const tour = await generateTour(placeId, name, country);
 
   const docData: TourDoc = {
