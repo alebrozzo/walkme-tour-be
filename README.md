@@ -47,10 +47,15 @@ Returns a tour (city + ordered list of stops) for the given Google Place ID. If 
 | `name`    | yes      | City display name (e.g. `Paris`)                                 |
 | `country` | yes      | Country name (e.g. `France`)                                     |
 
-**Example**
+**Examples**
 
 ```
 GET /api/cities?placeId=ChIJD7fiBh9u5kcRYJSMaMOCCwQ&name=Paris&country=France
+```
+
+```bash
+# Buenos Aires
+curl "http://localhost:3000/api/cities?placeId=ChIJvQz7nfzKvJURjlC4fXQYlTk&name=Buenos%20Aires&country=Argentina"
 ```
 
 **Response** — a `Tour` object matching the shared type in the frontend:
