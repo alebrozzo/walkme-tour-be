@@ -2,11 +2,11 @@ import 'dotenv/config';
 import app from './app.js';
 import { connectDatabase } from './config/database.js';
 
-const PORT = process.env.PORT ?? 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 async function main(): Promise<void> {
   await connectDatabase();
-  app.listen(PORT, () => {
+  app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server listening on port ${PORT}`);
   });
 }
