@@ -7,6 +7,26 @@ const app = express();
 
 app.use(express.json());
 
+// Request logging middleware
+app.use((req: Request, _res: Response, next: NextFunction) => {
+  console.log(`${req.method} ${req.path}`);
+  next();
+});
+
+// Enable CORS for development only
+if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Accept');
+    if (req.method === 'OPTIONS') {
+      res.sendStatus(200);
+    } else {
+      next();
+    }
+  });
+}
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100,
