@@ -6,6 +6,7 @@ import { generateTour } from './gemini.js';
 function tourDocToTour(doc: TourDoc): Tour {
   const tour: Tour = {
     id: doc._id,
+    placeId: doc.placeId,
     city: doc.city,
     country: doc.country,
     language: doc.language,
@@ -28,6 +29,7 @@ export async function getOrCreateTour(placeId: string, name: string, country: st
 
   const docData: TourDoc = {
     _id: docId,
+    placeId,
     city: tour.city,
     country: tour.country,
     language: tour.language,

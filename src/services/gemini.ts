@@ -97,7 +97,8 @@ Generate all text content (descriptions, names, addresses) in ${language}.`;
   });
 
   return {
-    id: placeId,
+    id: `${placeId}_${language}`,
+    placeId,
     city,
     country,
     language,

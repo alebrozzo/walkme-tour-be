@@ -3,6 +3,7 @@ import type { Stop } from '../types/tour.js';
 
 export interface TourDoc {
   _id: string;
+  placeId: string;
   city: string;
   country: string;
   language: string;
@@ -39,6 +40,7 @@ const stopSchema = new Schema<Stop>(
 const tourSchema = new Schema<TourDoc>(
   {
     _id: { type: String, required: true },
+    placeId: { type: String, required: true },
     city: { type: String, required: true },
     country: { type: String, required: true },
     language: { type: String, required: true },

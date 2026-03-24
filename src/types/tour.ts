@@ -41,6 +41,7 @@ export interface Stop {
 
 export interface Tour {
   id: string;
+  placeId: string;
   city: string;
   country: string;
   language: string;
