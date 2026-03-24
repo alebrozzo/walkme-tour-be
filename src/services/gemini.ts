@@ -46,7 +46,7 @@ function isValidStopType(value: string): value is StopType {
   return (STOP_TYPES as string[]).includes(value);
 }
 
-export async function generateTour(placeId: string, city: string, country: string, language = 'English'): Promise<Tour> {
+export async function generateTour(placeId: string, city: string, country: string, language = 'en'): Promise<Tour> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('GEMINI_API_KEY environment variable is not set');
 
@@ -97,9 +97,11 @@ Generate all text content (descriptions, names, addresses) in ${language}.`;
   });
 
   return {
-    id: placeId,
+    id: `${placeId}_${language}`,
+    placeId,
     city,
     country,
+    language,
     description: raw.description,
     color: raw.color,
     stops,
