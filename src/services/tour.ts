@@ -16,13 +16,13 @@ function tourDocToTour(doc: TourDoc): Tour {
   return tour;
 }
 
-export async function getOrCreateTour(placeId: string, name: string, country: string): Promise<Tour> {
+export async function getOrCreateTour(placeId: string, name: string, country: string, language = 'English'): Promise<Tour> {
   const existing = await TourModel.findById(placeId).lean<TourDoc>();
   if (existing) {
     return tourDocToTour(existing);
   }
 
-  const tour = await generateTour(placeId, name, country);
+  const tour = await generateTour(placeId, name, country, language);
 
   const docData: TourDoc = {
     _id: placeId,

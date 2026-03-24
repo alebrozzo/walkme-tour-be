@@ -46,7 +46,7 @@ function isValidStopType(value: string): value is StopType {
   return (STOP_TYPES as string[]).includes(value);
 }
 
-export async function generateTour(placeId: string, city: string, country: string): Promise<Tour> {
+export async function generateTour(placeId: string, city: string, country: string, language = 'English'): Promise<Tour> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('GEMINI_API_KEY environment variable is not set');
 
@@ -66,7 +66,8 @@ For each stop provide accurate GPS coordinates.
 The "type" field must be one of: landmark, museum, neighborhood, temple, shrine, park, piazza, market, beach.
 The "color" field should be a hex color that represents the city's character (e.g. "#2C3E8C" for Paris).
 The "duration" field is the recommended visit time in minutes.
-Omit "price" for free stops; include it as a display string (e.g. "€17") for paid ones.`;
+Omit "price" for free stops; include it as a display string (e.g. "€17") for paid ones.
+Generate all text content (descriptions, names, addresses) in ${language}.`;
 
   const result = await geminiModel.generateContent(prompt);
   const raw = JSON.parse(result.response.text()) as RawTour;

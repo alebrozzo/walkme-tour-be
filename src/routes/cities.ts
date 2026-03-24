@@ -4,7 +4,7 @@ import { getOrCreateTour } from '../services/tour.js';
 const router = Router();
 
 router.get('/', async (req, res) => {
-  const { placeId, name, country } = req.query;
+  const { placeId, name, country, language } = req.query;
 
   if (!placeId || !name || !country) {
     res.status(400).json({ error: 'Missing required query parameters: placeId, name, country' });
@@ -16,7 +16,14 @@ router.get('/', async (req, res) => {
     return;
   }
 
-  const tour = await getOrCreateTour(placeId, name, country);
+  if (language !== undefined && typeof language !== 'string') {
+    res.status(400).json({ error: 'Query parameter language must be a string' });
+    return;
+  }
+
+  const sanitizedLanguage = language ? language.trim().slice(0, 50).replace(/[^a-zA-Z\s-]/g, '') || 'English' : 'English';
+
+  const tour = await getOrCreateTour(placeId, name, country, sanitizedLanguage);
   res.json(tour);
 });
 

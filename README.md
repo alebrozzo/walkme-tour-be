@@ -41,21 +41,25 @@ Returns a tour (city + ordered list of stops) for the given Google Place ID. If 
 
 **Query parameters**
 
-| Parameter | Required | Description                                                      |
-| --------- | -------- | ---------------------------------------------------------------- |
-| `placeId` | yes      | Google Place ID of the city (e.g. `ChIJD7fiBh9u5kcRYJSMaMOCCwQ`) |
-| `name`    | yes      | City display name (e.g. `Paris`)                                 |
-| `country` | yes      | Country name (e.g. `France`)                                     |
+| Parameter  | Required | Description                                                       |
+| ---------- | -------- | ----------------------------------------------------------------- |
+| `placeId`  | yes      | Google Place ID of the city (e.g. `ChIJD7fiBh9u5kcRYJSMaMOCCwQ`) |
+| `name`     | yes      | City display name (e.g. `Paris`)                                  |
+| `country`  | yes      | Country name (e.g. `France`)                                      |
+| `language` | no       | Language for the generated content (e.g. `Spanish`). Defaults to `English`. |
 
 **Examples**
 
 ```
 GET /api/cities?placeId=ChIJD7fiBh9u5kcRYJSMaMOCCwQ&name=Paris&country=France
+GET /api/cities?placeId=ChIJD7fiBh9u5kcRYJSMaMOCCwQ&name=Paris&country=France&language=French
 ```
 
 ```bash
 # Buenos Aires
 curl "http://localhost:3000/api/cities?placeId=ChIJvQz7nfzKvJURjlC4fXQYlTk&name=Buenos%20Aires&country=Argentina"
+# Buenos Aires in Spanish
+curl "http://localhost:3000/api/cities?placeId=ChIJvQz7nfzKvJURjlC4fXQYlTk&name=Buenos%20Aires&country=Argentina&language=Spanish"
 ```
 
 **Response** — a `Tour` object matching the shared type in the frontend:
