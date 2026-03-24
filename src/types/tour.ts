@@ -43,6 +43,7 @@ export interface Tour {
   id: string;
   city: string;
   country: string;
+  language: string;
   description: string;
   color: string;
   imageUrl?: string;

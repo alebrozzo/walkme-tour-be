@@ -21,7 +21,12 @@ router.get('/', async (req, res) => {
     return;
   }
 
-  const sanitizedLanguage = language ? language.trim().slice(0, 50).replace(/[^a-zA-Z\s-]/g, '') || 'English' : 'English';
+  const sanitizedLanguage = language
+    ? language
+        .trim()
+        .slice(0, 50)
+        .replace(/[^a-zA-Z\s-]/g, '') || 'en'
+    : 'en';
 
   const tour = await getOrCreateTour(placeId, name, country, sanitizedLanguage);
   res.json(tour);

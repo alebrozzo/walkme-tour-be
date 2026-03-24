@@ -8,6 +8,7 @@ function tourDocToTour(doc: TourDoc): Tour {
     id: doc._id,
     city: doc.city,
     country: doc.country,
+    language: doc.language,
     description: doc.description,
     color: doc.color,
     stops: doc.stops,
@@ -16,8 +17,9 @@ function tourDocToTour(doc: TourDoc): Tour {
   return tour;
 }
 
-export async function getOrCreateTour(placeId: string, name: string, country: string, language = 'English'): Promise<Tour> {
-  const existing = await TourModel.findById(placeId).lean<TourDoc>();
+export async function getOrCreateTour(placeId: string, name: string, country: string, language = 'en'): Promise<Tour> {
+  const docId = `${placeId}_${language}`;
+  const existing = await TourModel.findById(docId).lean<TourDoc>();
   if (existing) {
     return tourDocToTour(existing);
   }
@@ -25,9 +27,10 @@ export async function getOrCreateTour(placeId: string, name: string, country: st
   const tour = await generateTour(placeId, name, country, language);
 
   const docData: TourDoc = {
-    _id: placeId,
+    _id: docId,
     city: tour.city,
     country: tour.country,
+    language: tour.language,
     description: tour.description,
     color: tour.color,
     stops: tour.stops,
