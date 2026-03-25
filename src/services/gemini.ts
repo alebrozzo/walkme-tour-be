@@ -48,7 +48,9 @@ function isValidStopType(value: string): value is StopType {
 
 export async function generateTour(placeId: string, city: string, country: string, language = 'en'): Promise<Tour> {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error('GEMINI_API_KEY environment variable is not set');
+  if (!apiKey) {
+    throw new Error('GEMINI_API_KEY environment variable is not set');
+  }
 
   const genAI = new GoogleGenerativeAI(apiKey);
   const geminiModel = genAI.getGenerativeModel({
@@ -91,7 +93,9 @@ Generate all text content (descriptions, names, addresses) in ${language}.`;
       duration: s.duration,
     };
 
-    if (s.price !== undefined && s.price !== '') stop.price = s.price;
+    if (s.price !== undefined && s.price !== '') {
+      stop.price = s.price;
+    }
 
     return stop;
   });
