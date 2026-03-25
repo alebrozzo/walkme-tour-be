@@ -14,7 +14,9 @@ function tourDocToTour(doc: TourDoc): Tour {
     color: doc.color,
     stops: doc.stops,
   };
-  if (doc.imageUrl !== undefined) tour.imageUrl = doc.imageUrl;
+  if (doc.imageUrl !== undefined) {
+    tour.imageUrl = doc.imageUrl;
+  }
   return tour;
 }
 
@@ -37,7 +39,9 @@ export async function getOrCreateTour(placeId: string, city: string, country: st
     color: tour.color,
     stops: tour.stops,
   };
-  if (tour.imageUrl !== undefined) docData.imageUrl = tour.imageUrl;
+  if (tour.imageUrl !== undefined) {
+    docData.imageUrl = tour.imageUrl;
+  }
 
   await TourModel.create(docData);
 
