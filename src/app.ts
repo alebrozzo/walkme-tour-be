@@ -9,7 +9,7 @@ app.use(express.json());
 
 // Request logging middleware
 app.use((req: Request, _res: Response, next: NextFunction) => {
-  console.log(`${req.method} ${req.path}`);
+  console.log(`${req.method} ${req.url}`);
   next();
 });
 

@@ -4,15 +4,10 @@ import { getOrCreateTour } from '../services/tour.js';
 const router = Router();
 
 router.get('/', async (req, res) => {
-  const { placeId, name, country, language } = req.query;
+  const { placeId, city, country, language } = req.query;
 
-  if (!placeId || !name || !country) {
-    res.status(400).json({ error: 'Missing required query parameters: placeId, name, country' });
-    return;
-  }
-
-  if (typeof placeId !== 'string' || typeof name !== 'string' || typeof country !== 'string') {
-    res.status(400).json({ error: 'Query parameters placeId, name, and country must be strings' });
+  if (typeof placeId !== 'string' || typeof city !== 'string' || typeof country !== 'string') {
+    res.status(400).json({ error: 'Missing required query parameters: placeId, city, country' });
     return;
   }
 
@@ -21,6 +16,9 @@ router.get('/', async (req, res) => {
     return;
   }
 
+  const sanitizedPlaceId = placeId.trim();
+  const sanitizedCity = city.trim();
+  const sanitizedCountry = country.trim();
   const sanitizedLanguage = language
     ? language
         .trim()
@@ -30,7 +28,12 @@ router.get('/', async (req, res) => {
         .slice(0, 50) || 'en'
     : 'en';
 
-  const tour = await getOrCreateTour(placeId, name, country, sanitizedLanguage);
+  if (!sanitizedPlaceId || !sanitizedCity || !sanitizedCountry) {
+    res.status(400).json({ error: 'Missing required query parameters: placeId, city, country' });
+    return;
+  }
+
+  const tour = await getOrCreateTour(sanitizedPlaceId, sanitizedCity, sanitizedCountry, sanitizedLanguage);
   res.json(tour);
 });
 
