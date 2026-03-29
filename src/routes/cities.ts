@@ -5,14 +5,19 @@ const router = Router();
 
 router.get('/', async (req, res) => {
   const { placeId, city, country, language } = req.query;
+  console.log('GET CITY', { placeId, city, country, language });
 
   if (typeof placeId !== 'string' || typeof city !== 'string' || typeof country !== 'string') {
-    res.status(400).json({ error: 'Missing required query parameters: placeId, city, country' });
+    const msg = 'Missing required query parameters: placeId, city, country';
+    res.status(400).json({ error: msg });
+    console.warn(`[cities] 400 - ${msg}`, { placeId, city, country, language });
     return;
   }
 
   if (language !== undefined && typeof language !== 'string') {
-    res.status(400).json({ error: 'Query parameter language must be a string' });
+    const msg = 'Query parameter language must be a string';
+    res.status(400).json({ error: msg });
+    console.warn(`[cities] 400 - ${msg}`);
     return;
   }
 
@@ -29,12 +34,23 @@ router.get('/', async (req, res) => {
     : 'en';
 
   if (!sanitizedPlaceId || !sanitizedCity || !sanitizedCountry) {
-    res.status(400).json({ error: 'Missing required query parameters: placeId, city, country' });
+    const msg = 'Missing required query parameters: placeId, city, country';
+    res.status(400).json({ error: msg });
+    console.warn(`[cities] 400 - ${msg} (values were blank after sanitization)`);
     return;
   }
 
-  const tour = await getOrCreateTour(sanitizedPlaceId, sanitizedCity, sanitizedCountry, sanitizedLanguage);
-  res.json(tour);
+  try {
+    const tour = await getOrCreateTour(sanitizedPlaceId, sanitizedCity, sanitizedCountry, sanitizedLanguage);
+    res.json(tour);
+  } catch (err) {
+    console.error(
+      `[cities] Failed to get/create tour for "${sanitizedCity}, ${sanitizedCountry}" (placeId=${sanitizedPlaceId}):`,
+      err,
+    );
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    res.status(500).json({ error: message });
+  }
 });
 
 export default router;

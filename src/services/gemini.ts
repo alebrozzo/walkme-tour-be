@@ -49,6 +49,7 @@ function isValidStopType(value: string): value is StopType {
 export async function generateTour(placeId: string, city: string, country: string, language = 'en'): Promise<Tour> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
+    console.error('[gemini] GEMINI_API_KEY is not set');
     throw new Error('GEMINI_API_KEY environment variable is not set');
   }
 
@@ -71,10 +72,20 @@ The "duration" field is the recommended visit time in minutes.
 Omit "price" for free stops; include it as a display string (e.g. "€17") for paid ones.
 Generate all text content (descriptions, names, addresses) in ${language}.`;
 
-  const result = await geminiModel.generateContent(prompt);
+  console.log(`[gemini] Generating tour for "${city}, ${country}" (placeId=${placeId}, language=${language})`);
+
+  let result;
+  try {
+    result = await geminiModel.generateContent(prompt);
+  } catch (err) {
+    console.error(`[gemini] Gemini API call failed for "${city}, ${country}":`, err);
+    throw err;
+  }
+
   const raw = JSON.parse(result.response.text()) as RawTour;
 
   if (!raw.description || !raw.color || !Array.isArray(raw.stops) || raw.stops.length === 0) {
+    console.error(`[gemini] Invalid response received for "${city}, ${country}": missing required fields`, raw);
     throw new Error('Invalid Gemini response: missing required fields');
   }
 
@@ -100,7 +111,7 @@ Generate all text content (descriptions, names, addresses) in ${language}.`;
     return stop;
   });
 
-  return {
+  const tour: Tour = {
     id: `${placeId}_${language}`,
     placeId,
     city,
@@ -110,4 +121,8 @@ Generate all text content (descriptions, names, addresses) in ${language}.`;
     color: raw.color,
     stops,
   };
+
+  console.log(`[gemini] Tour generated for "${city}, ${country}" with ${stops.length} stops`);
+
+  return tour;
 }

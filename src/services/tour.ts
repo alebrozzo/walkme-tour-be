@@ -22,12 +22,32 @@ function tourDocToTour(doc: TourDoc): Tour {
 
 export async function getOrCreateTour(placeId: string, city: string, country: string, language = 'en'): Promise<Tour> {
   const docId = `${placeId}_${language}`;
-  const existing = await TourModel.findById(docId).lean<TourDoc>();
+
+  let existing: TourDoc | null;
+  try {
+    existing = await TourModel.findById(docId).lean<TourDoc>();
+  } catch (err) {
+    console.error(`[tour] DB lookup failed for id="${docId}":`, err);
+    throw err;
+  }
+
   if (existing) {
+    console.log(`[tour] Cache hit for id="${docId}"`);
     return tourDocToTour(existing);
   }
 
-  const tour = await generateTour(placeId, city, country, language);
+  console.log(`[tour] No cached tour found for id="${docId}", generating…`);
+
+  let tour: Tour;
+  try {
+    tour = await generateTour(placeId, city, country, language);
+  } catch (err) {
+    console.error(
+      `[tour] Tour generation failed for "${city}, ${country}" (placeId=${placeId}, language=${language}):`,
+      err,
+    );
+    throw err;
+  }
 
   const docData: TourDoc = {
     _id: docId,
@@ -43,7 +63,14 @@ export async function getOrCreateTour(placeId: string, city: string, country: st
     docData.imageUrl = tour.imageUrl;
   }
 
-  await TourModel.create(docData);
+  try {
+    await TourModel.create(docData);
+  } catch (err) {
+    console.error(`[tour] Failed to save tour to DB for id="${docId}":`, err);
+    throw err;
+  }
+
+  console.log(`[tour] Tour saved to DB for id="${docId}"`);
 
   return tour;
 }
