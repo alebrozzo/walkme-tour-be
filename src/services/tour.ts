@@ -64,13 +64,21 @@ export async function getOrCreateTour(placeId: string, city: string, country: st
   }
 
   try {
-    await TourModel.create(docData);
+    const savedDoc = await TourModel.findByIdAndUpdate(
+      docId,
+      { $setOnInsert: docData },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    ).lean<TourDoc>();
+
+    if (!savedDoc) {
+      throw new Error(`[tour] Upsert did not return a document for id="${docId}"`);
+    }
+
+    console.log(`[tour] Tour saved to DB for id="${docId}"`);
+
+    return tourDocToTour(savedDoc);
   } catch (err) {
     console.error(`[tour] Failed to save tour to DB for id="${docId}":`, err);
     throw err;
   }
-
-  console.log(`[tour] Tour saved to DB for id="${docId}"`);
-
-  return tour;
 }
