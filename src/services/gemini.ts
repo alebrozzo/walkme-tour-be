@@ -2,6 +2,7 @@ import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import type { Schema } from '@google/generative-ai';
 import type { Tour, Stop, StopType } from '../types/tour.js';
 import { STOP_TYPES } from '../types/tour.js';
+import { lookupPlaceId } from './places.js';
 
 // RawStop/RawTour represent the Gemini response before validation:
 // stops lack `id`/`order` (assigned during transformation) and `type` is an
@@ -89,27 +90,34 @@ Generate all text content (descriptions, names, addresses) in ${language}.`;
     throw new Error('Invalid Gemini response: missing required fields');
   }
 
-  const stops: Stop[] = raw.stops.map((s, index): Stop => {
-    const order = index + 1;
-    const type: StopType = isValidStopType(s.type) ? s.type : 'landmark';
+  const stops: Stop[] = await Promise.all(
+    raw.stops.map(async (s, index): Promise<Stop> => {
+      const order = index + 1;
+      const type: StopType = isValidStopType(s.type) ? s.type : 'landmark';
 
-    const stop: Stop = {
-      id: `${placeId}-${order}`,
-      order,
-      name: s.name,
-      address: s.address,
-      coordinate: { latitude: s.coordinate.latitude, longitude: s.coordinate.longitude },
-      type,
-      description: s.description,
-      duration: s.duration,
-    };
+      const stop: Stop = {
+        id: `${placeId}-${order}`,
+        order,
+        name: s.name,
+        address: s.address,
+        coordinate: { latitude: s.coordinate.latitude, longitude: s.coordinate.longitude },
+        type,
+        description: s.description,
+        duration: s.duration,
+      };
 
-    if (s.price !== undefined && s.price !== '') {
-      stop.price = s.price;
-    }
+      if (s.price !== undefined && s.price !== '') {
+        stop.price = s.price;
+      }
 
-    return stop;
-  });
+      const googlePlaceId = await lookupPlaceId(s.name, s.coordinate.latitude, s.coordinate.longitude);
+      if (googlePlaceId !== undefined) {
+        stop.googlePlaceId = googlePlaceId;
+      }
+
+      return stop;
+    }),
+  );
 
   const tour: Tour = {
     id: `${placeId}_${language}`,
