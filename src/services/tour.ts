@@ -67,7 +67,7 @@ export async function getOrCreateTour(placeId: string, city: string, country: st
     const savedDoc = await TourModel.findByIdAndUpdate(
       docId,
       { $setOnInsert: docData },
-      { upsert: true, new: true, setDefaultsOnInsert: true },
+      { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true },
     ).lean<TourDoc>();
 
     if (!savedDoc) {
