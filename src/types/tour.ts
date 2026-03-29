@@ -37,6 +37,7 @@ export interface Stop {
   description: string;
   duration: number;
   price?: string;
+  googlePlaceId?: string;
 }
 
 export interface Tour {

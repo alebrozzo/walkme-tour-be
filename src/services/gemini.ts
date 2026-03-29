@@ -2,6 +2,7 @@ import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import type { Schema } from '@google/generative-ai';
 import type { Tour, Stop, StopType } from '../types/tour.js';
 import { STOP_TYPES } from '../types/tour.js';
+import { lookupPlaceId } from './places.js';
 
 // RawStop/RawTour represent the Gemini response before validation:
 // stops lack `id`/`order` (assigned during transformation) and `type` is an
@@ -49,6 +50,7 @@ function isValidStopType(value: string): value is StopType {
 export async function generateTour(placeId: string, city: string, country: string, language = 'en'): Promise<Tour> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
+    console.error('[gemini] GEMINI_API_KEY is not set');
     throw new Error('GEMINI_API_KEY environment variable is not set');
   }
 
@@ -71,36 +73,53 @@ The "duration" field is the recommended visit time in minutes.
 Omit "price" for free stops; include it as a display string (e.g. "€17") for paid ones.
 Generate all text content (descriptions, names, addresses) in ${language}.`;
 
-  const result = await geminiModel.generateContent(prompt);
+  console.log(`[gemini] Generating tour for "${city}, ${country}" (placeId=${placeId}, language=${language})`);
+
+  let result;
+  try {
+    result = await geminiModel.generateContent(prompt);
+  } catch (err) {
+    console.error(`[gemini] Gemini API call failed for "${city}, ${country}":`, err);
+    throw err;
+  }
+
   const raw = JSON.parse(result.response.text()) as RawTour;
 
   if (!raw.description || !raw.color || !Array.isArray(raw.stops) || raw.stops.length === 0) {
+    console.error(`[gemini] Invalid response received for "${city}, ${country}": missing required fields`, raw);
     throw new Error('Invalid Gemini response: missing required fields');
   }
 
-  const stops: Stop[] = raw.stops.map((s, index): Stop => {
-    const order = index + 1;
-    const type: StopType = isValidStopType(s.type) ? s.type : 'landmark';
+  const stops: Stop[] = await Promise.all(
+    raw.stops.map(async (s, index): Promise<Stop> => {
+      const order = index + 1;
+      const type: StopType = isValidStopType(s.type) ? s.type : 'landmark';
 
-    const stop: Stop = {
-      id: `${placeId}-${order}`,
-      order,
-      name: s.name,
-      address: s.address,
-      coordinate: { latitude: s.coordinate.latitude, longitude: s.coordinate.longitude },
-      type,
-      description: s.description,
-      duration: s.duration,
-    };
+      const stop: Stop = {
+        id: `${placeId}-${order}`,
+        order,
+        name: s.name,
+        address: s.address,
+        coordinate: { latitude: s.coordinate.latitude, longitude: s.coordinate.longitude },
+        type,
+        description: s.description,
+        duration: s.duration,
+      };
 
-    if (s.price !== undefined && s.price !== '') {
-      stop.price = s.price;
-    }
+      if (s.price !== undefined && s.price !== '') {
+        stop.price = s.price;
+      }
 
-    return stop;
-  });
+      const googlePlaceId = await lookupPlaceId(s.name, city, country, s.coordinate.latitude, s.coordinate.longitude);
+      if (googlePlaceId !== undefined) {
+        stop.googlePlaceId = googlePlaceId;
+      }
 
-  return {
+      return stop;
+    }),
+  );
+
+  const tour: Tour = {
     id: `${placeId}_${language}`,
     placeId,
     city,
@@ -110,4 +129,8 @@ Generate all text content (descriptions, names, addresses) in ${language}.`;
     color: raw.color,
     stops,
   };
+
+  console.log(`[gemini] Tour generated for "${city}, ${country}" with ${stops.length} stops`);
+
+  return tour;
 }

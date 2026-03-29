@@ -33,6 +33,7 @@ const stopSchema = new Schema<Stop>(
     description: { type: String, required: true },
     duration: { type: Number, required: true },
     price: { type: String },
+    googlePlaceId: { type: String },
   },
   { _id: false },
 );
