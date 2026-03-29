@@ -110,7 +110,7 @@ Generate all text content (descriptions, names, addresses) in ${language}.`;
         stop.price = s.price;
       }
 
-      const googlePlaceId = await lookupPlaceId(s.name, s.coordinate.latitude, s.coordinate.longitude);
+      const googlePlaceId = await lookupPlaceId(s.name, city, country, s.coordinate.latitude, s.coordinate.longitude);
       if (googlePlaceId !== undefined) {
         stop.googlePlaceId = googlePlaceId;
       }

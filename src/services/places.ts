@@ -5,10 +5,18 @@ interface PlacesSearchResponse {
 }
 
 /**
- * Looks up a Google Maps Place ID for a given stop name biased to the supplied coordinates.
+ * Looks up a Google Maps Place ID for a given stop.
+ * Including city and country in the query ensures unambiguous matching regardless of the language
+ * the stop name was generated in.
  * Returns undefined if the lookup fails or returns no results.
  */
-export async function lookupPlaceId(name: string, latitude: number, longitude: number): Promise<string | undefined> {
+export async function lookupPlaceId(
+  name: string,
+  city: string,
+  country: string,
+  latitude: number,
+  longitude: number,
+): Promise<string | undefined> {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;
   if (!apiKey) {
     return undefined;
@@ -23,7 +31,7 @@ export async function lookupPlaceId(name: string, latitude: number, longitude: n
         'X-Goog-FieldMask': 'places.id',
       },
       body: JSON.stringify({
-        textQuery: name,
+        textQuery: `${name}, ${city}, ${country}`,
         maxResultCount: 1,
         locationBias: {
           circle: {
