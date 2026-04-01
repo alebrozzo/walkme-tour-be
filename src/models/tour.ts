@@ -1,5 +1,6 @@
 import { Schema, model } from 'mongoose';
 import type { Stop } from '../types/tour.js';
+import { STOP_BADGES } from '../types/tour.js';
 
 export interface TourDoc {
   _id: string;
@@ -10,6 +11,7 @@ export interface TourDoc {
   description: string;
   color: string;
   imageUrl?: string;
+  metadataVersion?: number;
   stops: Stop[];
 }
 
@@ -34,6 +36,12 @@ const stopSchema = new Schema<Stop>(
     duration: { type: Number, required: true },
     price: { type: String },
     googlePlaceId: { type: String },
+    openingHours: { type: [String] },
+    rating: { type: Number },
+    ratingCount: { type: Number },
+    highlights: { type: [String] },
+    knownFor: { type: String },
+    badges: { type: [String], enum: STOP_BADGES },
   },
   { _id: false },
 );
@@ -48,6 +56,7 @@ const tourSchema = new Schema<TourDoc>(
     description: { type: String, required: true },
     color: { type: String, required: true },
     imageUrl: { type: String },
+    metadataVersion: { type: Number },
     stops: { type: [stopSchema], required: true },
   },
   { versionKey: false },

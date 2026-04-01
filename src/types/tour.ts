@@ -9,6 +9,8 @@ export type StopType =
   | 'market'
   | 'beach';
 
+export type StopBadge = 'must-see' | 'photo-spot' | 'family-friendly' | 'historic' | 'indoor' | 'outdoor' | 'free';
+
 export const STOP_TYPES: StopType[] = [
   'landmark',
   'museum',
@@ -19,6 +21,16 @@ export const STOP_TYPES: StopType[] = [
   'piazza',
   'market',
   'beach',
+];
+
+export const STOP_BADGES: StopBadge[] = [
+  'must-see',
+  'photo-spot',
+  'family-friendly',
+  'historic',
+  'indoor',
+  'outdoor',
+  'free',
 ];
 
 export interface Coordinate {
@@ -38,6 +50,12 @@ export interface Stop {
   duration: number;
   price?: string;
   googlePlaceId?: string;
+  openingHours?: string[];
+  rating?: number;
+  ratingCount?: number;
+  highlights?: string[];
+  knownFor?: string;
+  badges?: StopBadge[];
 }
 
 export interface Tour {

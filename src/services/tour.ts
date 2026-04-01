@@ -1,7 +1,10 @@
 import type { Tour } from '../types/tour.js';
 import type { TourDoc } from '../models/tour.js';
 import { TourModel } from '../models/tour.js';
-import { generateTour } from './gemini.js';
+import { enrichStopMetadata, generateTour } from './gemini.js';
+import { enrichStopWithPlaceDetails } from './places.js';
+
+const TOUR_METADATA_VERSION = 1;
 
 function tourDocToTour(doc: TourDoc): Tour {
   const tour: Tour = {
@@ -33,7 +36,37 @@ export async function getOrCreateTour(placeId: string, city: string, country: st
 
   if (existing) {
     console.log(`[tour] Cache hit for id="${docId}"`);
-    return tourDocToTour(existing);
+
+    if (existing.metadataVersion === TOUR_METADATA_VERSION) {
+      return tourDocToTour(existing);
+    }
+
+    console.log(`[tour] Enriching cached tour metadata for id="${docId}"`);
+
+    const stopsWithPlaceDetails = await Promise.all(
+      existing.stops.map((stop) => enrichStopWithPlaceDetails(stop, city, country, language)),
+    );
+    const enrichedStops = await enrichStopMetadata(stopsWithPlaceDetails, city, country, language);
+
+    const updatedDoc = await TourModel.findByIdAndUpdate(
+      docId,
+      {
+        $set: {
+          stops: enrichedStops,
+          metadataVersion: TOUR_METADATA_VERSION,
+        },
+      },
+      { returnDocument: 'after' },
+    ).lean<TourDoc>();
+
+    if (updatedDoc) {
+      return tourDocToTour(updatedDoc);
+    }
+
+    return {
+      ...tourDocToTour(existing),
+      stops: enrichedStops,
+    };
   }
 
   console.log(`[tour] No cached tour found for id="${docId}", generating…`);
@@ -57,6 +90,7 @@ export async function getOrCreateTour(placeId: string, city: string, country: st
     language: tour.language,
     description: tour.description,
     color: tour.color,
+    metadataVersion: TOUR_METADATA_VERSION,
     stops: tour.stops,
   };
   if (tour.imageUrl !== undefined) {
