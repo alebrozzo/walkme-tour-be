@@ -35,6 +35,47 @@ The server starts on `http://localhost:3000` and restarts automatically on file 
 
 ## API
 
+### `GET /api/ping`
+
+Lightweight liveness endpoint. This does not call external services.
+
+```bash
+curl "http://localhost:3000/api/ping"
+```
+
+### `GET /api/health-check`
+
+Deep health endpoint for dependency checks.
+
+- By default it runs database and Google Places checks.
+- Gemini check is opt-in because it is costlier and may be rate-limited.
+
+**Query parameters**
+
+| Parameter       | Required | Default | Description                             |
+| --------------- | -------- | ------- | --------------------------------------- |
+| `includeDb`     | no       | `true`  | Run MongoDB check using Paris/France/en |
+| `includePlaces` | no       | `true`  | Run Google Places API check             |
+| `includeAI`     | no       | `false` | Run Gemini API check                    |
+
+**Examples**
+
+```bash
+# Default deep check (DB + Places)
+curl "http://localhost:3000/api/health-check"
+
+# Include AI (Gemini) in deep check
+curl "http://localhost:3000/api/health-check?includeAI=true"
+
+# Gemini only
+curl "http://localhost:3000/api/health-check?includeDb=false&includePlaces=false&includeAI=true"
+
+# DB only
+curl "http://localhost:3000/api/health-check?includePlaces=false&includeAI=false"
+```
+
+The response includes overall `status` (`ok` or `degraded`) and component-level results under `database`, `googlePlaces`, and `ai` for the checks that were run.
+
 ### `GET /api/cities`
 
 Returns a tour (city + ordered list of stops) for the given Google Place ID. If the city is not yet in the database, stops are generated via the Gemini API, persisted, and returned.
