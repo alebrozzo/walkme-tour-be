@@ -3,30 +3,54 @@ import type { Request, Response, NextFunction } from 'express';
 import rateLimit from 'express-rate-limit';
 import citiesRouter from './routes/cities.js';
 import healthRouter from './routes/health.js';
+import { getOrGenerateCorrelationId } from './utils/correlationId.js';
+import { logInfo } from './utils/logger.js';
 
 const app = express();
 
 app.use(express.json());
 
-// Request logging middleware
-app.use((req: Request, _res: Response, next: NextFunction) => {
-  console.log(`${req.method} ${req.url}`);
+// Correlation ID middleware - extract from headers or generate new one
+app.use((req: Request, res: Response, next: NextFunction) => {
+  req.correlationId = getOrGenerateCorrelationId(req);
+  // Add correlation ID to response headers so client can receive it if needed
+  res.setHeader('X-Correlation-ID', req.correlationId);
   next();
 });
 
-// Enable CORS for development only
-if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
-  app.use((req: Request, res: Response, next: NextFunction) => {
+// Request logging middleware
+app.use((req: Request, _res: Response, next: NextFunction) => {
+  logInfo('app', `${req.method} ${req.url}`, req.correlationId, { path: req.path });
+  next();
+});
+
+// CORS
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+      .map((o) => o.trim())
+      .filter(Boolean)
+  : [];
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const origin = req.headers.origin;
+  const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
+
+  if (isDev) {
     res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Accept');
-    if (req.method === 'OPTIONS') {
-      res.sendStatus(200);
-    } else {
-      next();
-    }
-  });
-}
+  } else if (origin && allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Vary', 'Origin');
+  }
+
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Accept');
+
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
