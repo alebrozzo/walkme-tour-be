@@ -1,12 +1,11 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request } from 'express';
+import { randomBytes } from 'crypto';
 
 /**
  * Generate a unique correlation ID for tracking requests
  */
 export function generateCorrelationId(): string {
-  const timestamp = Date.now().toString(36);
-  const randomStr = Math.random().toString(36).substring(2, 15);
-  return `${timestamp}-${randomStr}`;
+  return randomBytes(3).toString('hex');
 }
 
 /**
