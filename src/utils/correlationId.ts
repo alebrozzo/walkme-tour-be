@@ -1,4 +1,4 @@
-import { Request } from 'express';
+import { type Request } from 'express';
 import { randomBytes } from 'crypto';
 
 /**
@@ -24,10 +24,8 @@ export function getOrGenerateCorrelationId(req: Request): string {
 /**
  * Store correlation ID in request object for access in route handlers
  */
-declare global {
-  namespace Express {
-    interface Request {
-      correlationId?: string;
-    }
+declare module 'express-serve-static-core' {
+  interface Request {
+    correlationId?: string;
   }
 }
