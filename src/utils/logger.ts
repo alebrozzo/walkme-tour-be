@@ -1,0 +1,96 @@
+import type { Request } from 'express';
+
+type LogLevel = 'log' | 'warn' | 'error';
+
+interface LogContext {
+  enableLogging: boolean;
+}
+
+// Determine if logging is enabled based on environment
+const logContext: LogContext = {
+  enableLogging: process.env.NODE_ENV === 'development' || process.env.ENABLE_LOGGING === 'true',
+};
+
+/**
+ * Set logging context globally (can be called at app initialization)
+ */
+export function setLoggingContext(context: Partial<LogContext>): void {
+  Object.assign(logContext, context);
+}
+
+/**
+ * Format log message with correlation ID and optional context
+ */
+function formatLogMessage(
+  namespace: string,
+  message: string,
+  correlationId?: string,
+  data?: Record<string, unknown>,
+): string {
+  const id = correlationId || 'unknown';
+  const baseMsg = `[${namespace}] [${id}] ${message}`;
+
+  if (data && Object.keys(data).length > 0) {
+    return `${baseMsg} ${JSON.stringify(data)}`;
+  }
+
+  return baseMsg;
+}
+
+/**
+ * Log a message if logging is enabled
+ */
+export function logMessage(
+  level: LogLevel,
+  namespace: string,
+  message: string,
+  correlationId?: string,
+  data?: Record<string, unknown>,
+): void {
+  if (!logContext.enableLogging) {
+    return;
+  }
+
+  const formattedMsg = formatLogMessage(namespace, message, correlationId, data);
+
+  if (level === 'log') {
+    console.log(formattedMsg);
+  } else if (level === 'warn') {
+    console.warn(formattedMsg);
+  } else if (level === 'error') {
+    console.error(formattedMsg);
+  }
+}
+
+/**
+ * Convenience functions that can accept a Request object to extract correlation ID
+ */
+export function logInfo(
+  namespace: string,
+  message: string,
+  reqOrCorrelationId?: Request | string,
+  data?: Record<string, unknown>,
+): void {
+  const correlationId = typeof reqOrCorrelationId === 'string' ? reqOrCorrelationId : reqOrCorrelationId?.correlationId;
+  logMessage('log', namespace, message, correlationId, data);
+}
+
+export function logWarn(
+  namespace: string,
+  message: string,
+  reqOrCorrelationId?: Request | string,
+  data?: Record<string, unknown>,
+): void {
+  const correlationId = typeof reqOrCorrelationId === 'string' ? reqOrCorrelationId : reqOrCorrelationId?.correlationId;
+  logMessage('warn', namespace, message, correlationId, data);
+}
+
+export function logError(
+  namespace: string,
+  message: string,
+  reqOrCorrelationId?: Request | string,
+  data?: Record<string, unknown>,
+): void {
+  const correlationId = typeof reqOrCorrelationId === 'string' ? reqOrCorrelationId : reqOrCorrelationId?.correlationId;
+  logMessage('error', namespace, message, correlationId, data);
+}

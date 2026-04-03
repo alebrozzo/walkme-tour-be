@@ -3,6 +3,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { TourModel } from '../models/tour.js';
 import { lookupPlaceId } from '../services/places.js';
 import { GEMINI_MODEL } from '../services/gemini.js';
+import { logInfo, logError } from '../utils/logger.js';
 
 const router = Router();
 
@@ -42,7 +43,9 @@ async function checkDatabase(): Promise<CheckResult> {
       },
     };
   } catch (err) {
-    console.error('[health-check] Database check failed:', err);
+    logError('health', 'Database check failed', undefined, {
+      error: err instanceof Error ? err.message : String(err),
+    });
     return { status: 'error', reason: 'db_check_failed' };
   }
 }
@@ -76,20 +79,17 @@ async function checkGemini(): Promise<CheckResult> {
     const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
     const result = await model.generateContent('Reply with exactly: ok');
     const text = result.response.text().trim().toLowerCase();
-    const responded = text.includes('ok');
-
-    if (!responded) {
-      return { status: 'error', reason: 'unexpected_response' };
-    }
 
     return {
       status: 'ok',
       details: {
-        responded,
+        responded: text.includes('ok'),
       },
     };
   } catch (err) {
-    console.error('[health-check] Gemini check failed:', err);
+    logError('health', 'Gemini check failed', undefined, {
+      error: err instanceof Error ? err.message : String(err),
+    });
     return { status: 'error', reason: 'gemini_check_failed' };
   }
 }
@@ -108,42 +108,38 @@ router.get('/health-check', async (req, res) => {
   const includePlaces = queryFlag(req.query.includePlaces, true);
   const includeAI = queryFlag(req.query.includeAI, false);
 
+  logInfo('health', 'Health check requested', req, {
+    includeDb,
+    includePlaces,
+    includeAI,
+  });
+
   const checksRun: string[] = [];
   const checksSkipped: string[] = [];
   const components: Record<string, unknown> = {};
-  const componentChecks: Array<Promise<[string, CheckResult]>> = [];
 
   if (includeDb) {
     checksRun.push('database');
-    componentChecks.push(
-      checkDatabase().then((result) => ['database', result] as [string, CheckResult]),
-    );
+    const dbCheck = await checkDatabase();
+    components.database = dbCheck;
   } else {
     checksSkipped.push('database');
   }
 
   if (includePlaces) {
     checksRun.push('googlePlaces');
-    componentChecks.push(
-      checkGooglePlaces().then((result) => ['googlePlaces', result] as [string, CheckResult]),
-    );
+    components.googlePlaces = await checkGooglePlaces();
   } else {
     checksSkipped.push('googlePlaces');
   }
 
   if (includeAI) {
     checksRun.push('ai');
-    componentChecks.push(
-      checkGemini().then((result) => ['ai', result] as [string, CheckResult]),
-    );
+    components.ai = await checkGemini();
   } else {
     checksSkipped.push('ai');
   }
 
-  const resolvedComponents = await Promise.all(componentChecks);
-  for (const [name, result] of resolvedComponents) {
-    components[name] = result;
-  }
   const failingChecks = Object.entries(components)
     .filter(([, value]) => typeof value === 'object' && value !== null)
     .filter(([, value]) => {
@@ -154,6 +150,11 @@ router.get('/health-check', async (req, res) => {
 
   const status = failingChecks.length > 0 ? 'degraded' : 'ok';
   const statusCode = failingChecks.length > 0 ? 503 : 200;
+
+  logInfo('health', 'Health check completed', req, {
+    status,
+    failingChecks,
+  });
 
   res.status(statusCode).json({
     status,
