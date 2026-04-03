@@ -76,11 +76,16 @@ async function checkGemini(): Promise<CheckResult> {
     const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
     const result = await model.generateContent('Reply with exactly: ok');
     const text = result.response.text().trim().toLowerCase();
+    const responded = text.includes('ok');
+
+    if (!responded) {
+      return { status: 'error', reason: 'unexpected_response' };
+    }
 
     return {
       status: 'ok',
       details: {
-        responded: text.includes('ok'),
+        responded,
       },
     };
   } catch (err) {
