@@ -4,6 +4,8 @@ import type { Tour, Stop, StopType } from '../types/tour.js';
 import { STOP_TYPES } from '../types/tour.js';
 import { lookupPlaceId } from './places.js';
 
+export const GEMINI_MODEL = 'gemini-2.5-flash';
+
 // RawStop/RawTour represent the Gemini response before validation:
 // stops lack `id`/`order` (assigned during transformation) and `type` is an
 // unvalidated string until confirmed against the STOP_TYPES list.
@@ -56,7 +58,7 @@ export async function generateTour(placeId: string, city: string, country: strin
 
   const genAI = new GoogleGenerativeAI(apiKey);
   const geminiModel = genAI.getGenerativeModel({
-    model: 'gemini-2.5-flash',
+    model: GEMINI_MODEL,
     generationConfig: {
       responseMimeType: 'application/json',
       responseSchema,

@@ -2,6 +2,7 @@ import express from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import rateLimit from 'express-rate-limit';
 import citiesRouter from './routes/cities.js';
+import healthRouter from './routes/health.js';
 
 const app = express();
 
@@ -36,6 +37,7 @@ const limiter = rateLimit({
 
 app.use(limiter);
 
+app.use('/api', healthRouter);
 app.use('/api/cities', citiesRouter);
 
 // 404 handler
