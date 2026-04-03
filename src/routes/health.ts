@@ -106,29 +106,39 @@ router.get('/health-check', async (req, res) => {
   const checksRun: string[] = [];
   const checksSkipped: string[] = [];
   const components: Record<string, unknown> = {};
+  const componentChecks: Array<Promise<[string, CheckResult]>> = [];
 
   if (includeDb) {
     checksRun.push('database');
-    const dbCheck = await checkDatabase();
-    components.database = dbCheck;
+    componentChecks.push(
+      checkDatabase().then((result) => ['database', result] as [string, CheckResult]),
+    );
   } else {
     checksSkipped.push('database');
   }
 
   if (includePlaces) {
     checksRun.push('googlePlaces');
-    components.googlePlaces = await checkGooglePlaces();
+    componentChecks.push(
+      checkGooglePlaces().then((result) => ['googlePlaces', result] as [string, CheckResult]),
+    );
   } else {
     checksSkipped.push('googlePlaces');
   }
 
   if (includeAI) {
     checksRun.push('ai');
-    components.ai = await checkGemini();
+    componentChecks.push(
+      checkGemini().then((result) => ['ai', result] as [string, CheckResult]),
+    );
   } else {
     checksSkipped.push('ai');
   }
 
+  const resolvedComponents = await Promise.all(componentChecks);
+  for (const [name, result] of resolvedComponents) {
+    components[name] = result;
+  }
   const failingChecks = Object.entries(components)
     .filter(([, value]) => typeof value === 'object' && value !== null)
     .filter(([, value]) => {
