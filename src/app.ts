@@ -43,7 +43,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   }
 
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Accept');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Accept, X-Correlation-ID');
+  res.header('Access-Control-Expose-Headers', 'X-Correlation-ID');
 
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
