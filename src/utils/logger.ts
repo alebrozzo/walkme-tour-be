@@ -61,36 +61,3 @@ export function logMessage(
     console.error(formattedMsg);
   }
 }
-
-/**
- * Convenience functions that can accept a Request object to extract correlation ID
- */
-export function logInfo(
-  namespace: string,
-  message: string,
-  reqOrCorrelationId?: Request | string,
-  data?: Record<string, unknown>,
-): void {
-  const correlationId = typeof reqOrCorrelationId === 'string' ? reqOrCorrelationId : reqOrCorrelationId?.correlationId;
-  logMessage('log', namespace, message, correlationId, data);
-}
-
-export function logWarn(
-  namespace: string,
-  message: string,
-  reqOrCorrelationId?: Request | string,
-  data?: Record<string, unknown>,
-): void {
-  const correlationId = typeof reqOrCorrelationId === 'string' ? reqOrCorrelationId : reqOrCorrelationId?.correlationId;
-  logMessage('warn', namespace, message, correlationId, data);
-}
-
-export function logError(
-  namespace: string,
-  message: string,
-  reqOrCorrelationId?: Request | string,
-  data?: Record<string, unknown>,
-): void {
-  const correlationId = typeof reqOrCorrelationId === 'string' ? reqOrCorrelationId : reqOrCorrelationId?.correlationId;
-  logMessage('error', namespace, message, correlationId, data);
-}

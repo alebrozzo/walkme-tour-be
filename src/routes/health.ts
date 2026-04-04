@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { TourModel } from '../models/tour.js';
 import { lookupPlaceId } from '../services/places.js';
 import { GEMINI_MODEL } from '../services/gemini.js';
-import { logInfo, logError } from '../utils/logger.js';
+import { logMessage } from '../utils/logger.js';
 
 const router = Router();
 
@@ -43,7 +43,7 @@ async function checkDatabase(): Promise<CheckResult> {
       },
     };
   } catch (err) {
-    logError('health', 'Database check failed', undefined, {
+    logMessage('error', 'health', 'Database check failed', undefined, {
       error: err instanceof Error ? err.message : String(err),
     });
     return { status: 'error', reason: 'db_check_failed' };
@@ -87,7 +87,7 @@ async function checkGemini(): Promise<CheckResult> {
       },
     };
   } catch (err) {
-    logError('health', 'Gemini check failed', undefined, {
+    logMessage('error', 'health', 'Gemini check failed', undefined, {
       error: err instanceof Error ? err.message : String(err),
     });
     return { status: 'error', reason: 'gemini_check_failed' };
@@ -108,7 +108,7 @@ router.get('/health-check', async (req, res) => {
   const includePlaces = queryFlag(req.query.includePlaces, true);
   const includeAI = queryFlag(req.query.includeAI, false);
 
-  logInfo('health', 'Health check requested', req, {
+  logMessage('log', 'health', 'Health check requested', req, {
     includeDb,
     includePlaces,
     includeAI,
@@ -151,7 +151,7 @@ router.get('/health-check', async (req, res) => {
   const status = failingChecks.length > 0 ? 'degraded' : 'ok';
   const statusCode = failingChecks.length > 0 ? 503 : 200;
 
-  logInfo('health', 'Health check completed', req, {
+  logMessage('log', 'health', 'Health check completed', req, {
     status,
     failingChecks,
   });

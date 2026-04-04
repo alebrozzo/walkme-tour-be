@@ -4,7 +4,7 @@ import rateLimit from 'express-rate-limit';
 import citiesRouter from './routes/cities.js';
 import healthRouter from './routes/health.js';
 import { getOrGenerateCorrelationId } from './utils/correlationId.js';
-import { logInfo } from './utils/logger.js';
+import { logMessage } from './utils/logger.js';
 
 const app = express();
 
@@ -24,7 +24,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 // Request logging middleware
 app.use((req: Request, _res: Response, next: NextFunction) => {
-  logInfo('app', `${req.method} ${req.url}`, req.correlationId, { path: req.path });
+  logMessage('log', 'app', `${req.method} ${req.url}`, req.correlationId, { path: req.path });
   next();
 });
 
