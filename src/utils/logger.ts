@@ -1,14 +1,49 @@
-import type { Request } from 'express';
-
-type LogLevel = 'log' | 'warn' | 'error';
+type LogLevel = 'info' | 'warn' | 'error';
+import { getCorrelationIdFromContext } from './requestContext.js';
 
 interface LogContext {
-  enableLogging: boolean;
+  minLogLevel: LogLevel | null;
 }
 
-// Determine if logging is enabled based on environment
+const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
+  info: 0,
+  warn: 1,
+  error: 2,
+};
+
+function parseMinLogLevel(value: string | undefined): LogLevel | null {
+  if (!value) {
+    return process.env.NODE_ENV === 'development' ? 'info' : 'warn';
+  }
+
+  const normalized = value.trim().toLowerCase();
+  if (normalized === 'info' || normalized === 'warn' || normalized === 'error') {
+    return normalized;
+  }
+
+  if (normalized === 'log') {
+    return 'info';
+  }
+
+  if (normalized === 'none' || normalized === 'false') {
+    return null;
+  }
+
+  return process.env.NODE_ENV === 'development' ? 'info' : 'warn';
+}
+
+function shouldLog(level: LogLevel): boolean {
+  const minLogLevel = logContext.minLogLevel;
+  if (!minLogLevel) {
+    return false;
+  }
+
+  return LOG_LEVEL_PRIORITY[level] >= LOG_LEVEL_PRIORITY[minLogLevel];
+}
+
+// Determine minimum log level based on environment.
 const logContext: LogContext = {
-  enableLogging: process.env.NODE_ENV === 'development' || process.env.ENABLE_LOGGING === 'true',
+  minLogLevel: parseMinLogLevel(process.env.LOG_LEVEL),
 };
 
 /**
@@ -21,76 +56,27 @@ export function setLoggingContext(context: Partial<LogContext>): void {
 /**
  * Format log message with correlation ID and optional context
  */
-function formatLogMessage(
-  namespace: string,
-  message: string,
-  correlationId?: string,
-  data?: Record<string, unknown>,
-): string {
-  const id = correlationId || 'unknown';
-  const baseMsg = `[${namespace}] [${id}] ${message}`;
-
-  if (data && Object.keys(data).length > 0) {
-    return `${baseMsg} ${JSON.stringify(data)}`;
-  }
-
-  return baseMsg;
+function formatLogMessage(level: LogLevel, message: string, data?: string): string {
+  const id = getCorrelationIdFromContext() || 'unknown';
+  const baseMsg = `[${id}] [${level}] ${message}`;
+  return data ? `${baseMsg} ${data}` : baseMsg;
 }
 
 /**
  * Log a message if logging is enabled
  */
-export function logMessage(
-  level: LogLevel,
-  namespace: string,
-  message: string,
-  correlationId?: string,
-  data?: Record<string, unknown>,
-): void {
-  if (!logContext.enableLogging) {
+export function logMessage(level: LogLevel, message: string, data?: string): void {
+  if (!shouldLog(level)) {
     return;
   }
 
-  const formattedMsg = formatLogMessage(namespace, message, correlationId, data);
+  const formattedMsg = formatLogMessage(level, message, data);
 
-  if (level === 'log') {
+  if (level === 'info') {
     console.log(formattedMsg);
   } else if (level === 'warn') {
     console.warn(formattedMsg);
   } else if (level === 'error') {
     console.error(formattedMsg);
   }
-}
-
-/**
- * Convenience functions that can accept a Request object to extract correlation ID
- */
-export function logInfo(
-  namespace: string,
-  message: string,
-  reqOrCorrelationId?: Request | string,
-  data?: Record<string, unknown>,
-): void {
-  const correlationId = typeof reqOrCorrelationId === 'string' ? reqOrCorrelationId : reqOrCorrelationId?.correlationId;
-  logMessage('log', namespace, message, correlationId, data);
-}
-
-export function logWarn(
-  namespace: string,
-  message: string,
-  reqOrCorrelationId?: Request | string,
-  data?: Record<string, unknown>,
-): void {
-  const correlationId = typeof reqOrCorrelationId === 'string' ? reqOrCorrelationId : reqOrCorrelationId?.correlationId;
-  logMessage('warn', namespace, message, correlationId, data);
-}
-
-export function logError(
-  namespace: string,
-  message: string,
-  reqOrCorrelationId?: Request | string,
-  data?: Record<string, unknown>,
-): void {
-  const correlationId = typeof reqOrCorrelationId === 'string' ? reqOrCorrelationId : reqOrCorrelationId?.correlationId;
-  logMessage('error', namespace, message, correlationId, data);
 }
