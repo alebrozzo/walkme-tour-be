@@ -79,7 +79,7 @@ app.use((_req: Request, res: Response) => {
 
 // Global error handler
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
-  console.error(err);
+  logMessage('error', 'Unhandled error', String(err));
   const message = err instanceof Error ? err.message : 'Internal server error';
   res.status(500).json({ error: message });
 });

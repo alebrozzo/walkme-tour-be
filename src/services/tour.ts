@@ -1,6 +1,7 @@
 import type { Tour } from '../types/tour.js';
 import type { TourDoc } from '../models/tour.js';
 import { TourModel } from '../models/tour.js';
+import { logMessage } from '../utils/logger.js';
 import { generateTour } from './gemini.js';
 
 function tourDocToTour(doc: TourDoc): Tour {
@@ -27,24 +28,25 @@ export async function getOrCreateTour(placeId: string, city: string, country: st
   try {
     existing = await TourModel.findById(docId).lean<TourDoc>();
   } catch (err) {
-    console.error(`[tour] DB lookup failed for id="${docId}":`, err);
+    logMessage('error', `DB lookup failed for id="${docId}"`, String(err));
     throw err;
   }
 
   if (existing) {
-    console.log(`[tour] Cache hit for id="${docId}"`);
+    logMessage('info', `Cache hit for ${JSON.stringify({ id: docId })}`);
     return tourDocToTour(existing);
   }
 
-  console.log(`[tour] No cached tour found for id="${docId}", generating…`);
+  logMessage('info', `No cached tour found for ${JSON.stringify({ id: docId })}, generating…`);
 
   let tour: Tour;
   try {
     tour = await generateTour(placeId, city, country, language);
   } catch (err) {
-    console.error(
-      `[tour] Tour generation failed for "${city}, ${country}" (placeId=${placeId}, language=${language}):`,
-      err,
+    logMessage(
+      'error',
+      `Tour generation failed for ${JSON.stringify({ city, country, placeId, language })}`,
+      String(err),
     );
     throw err;
   }
@@ -71,14 +73,14 @@ export async function getOrCreateTour(placeId: string, city: string, country: st
     ).lean<TourDoc>();
 
     if (!savedDoc) {
-      throw new Error(`[tour] Upsert did not return a document for id="${docId}"`);
+      throw new Error(`[tour] Upsert did not return a document for ${JSON.stringify({ id: docId })}`);
     }
 
-    console.log(`[tour] Tour saved to DB for id="${docId}"`);
+    logMessage('info', `Tour saved to DB for ${JSON.stringify({ id: docId })}`);
 
     return tourDocToTour(savedDoc);
   } catch (err) {
-    console.error(`[tour] Failed to save tour to DB for id="${docId}":`, err);
+    logMessage('error', `Failed to save tour to DB for ${JSON.stringify({ id: docId })}`, String(err));
     throw err;
   }
 }

@@ -1,3 +1,5 @@
+import { logMessage } from '../utils/logger.js';
+
 const PLACES_SEARCH_URL = 'https://places.googleapis.com/v1/places:searchText';
 
 interface PlacesSearchResponse {
@@ -43,14 +45,22 @@ export async function lookupPlaceId(
     });
 
     if (!response.ok) {
-      console.warn(`[places] Text search failed for "${name}": ${response.status}`);
+      logMessage(
+        'warn',
+        `Text search failed for ${JSON.stringify({ name, city, country, latitude, longitude })}`,
+        `status=${response.status}`,
+      );
       return undefined;
     }
 
     const data = (await response.json()) as PlacesSearchResponse;
     return data.places?.[0]?.id;
   } catch (err) {
-    console.warn(`[places] Text search threw for "${name}":`, err);
+    logMessage(
+      'warn',
+      `Text search threw for ${JSON.stringify({ name, city, country, latitude, longitude })}`,
+      String(err),
+    );
     return undefined;
   }
 }
