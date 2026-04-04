@@ -8,6 +8,10 @@ import { logInfo } from './utils/logger.js';
 
 const app = express();
 
+// Trust the first proxy hop (e.g. Render, Heroku, nginx) so that
+// express-rate-limit can correctly read the client IP from X-Forwarded-For.
+app.set('trust proxy', 1);
+
 app.use(express.json());
 
 // Correlation ID middleware - extract from headers or generate new one
