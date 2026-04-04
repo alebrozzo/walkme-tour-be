@@ -41,7 +41,7 @@ router.get('/', async (req, res) => {
     logMessage(
       'warn',
       '400 - Required parameters blank after sanitization',
-      `placeId=${placeId} city=${city} country=${country}`,
+      `query=${queryLog}`,
     );
     return;
   }
