@@ -2,12 +2,44 @@ type LogLevel = 'log' | 'warn' | 'error';
 import { getCorrelationIdFromContext } from './requestContext.js';
 
 interface LogContext {
-  enableLogging: boolean;
+  minLogLevel: LogLevel | null;
 }
 
-// Determine if logging is enabled based on environment
+const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
+  log: 0,
+  warn: 1,
+  error: 2,
+};
+
+function parseMinLogLevel(value: string | undefined): LogLevel | null {
+  if (!value) {
+    return process.env.NODE_ENV === 'development' ? 'log' : null;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  if (normalized === 'log' || normalized === 'warn' || normalized === 'error') {
+    return normalized;
+  }
+
+  if (normalized === 'off' || normalized === 'none' || normalized === 'false' || normalized === '0') {
+    return null;
+  }
+
+  return process.env.NODE_ENV === 'development' ? 'log' : null;
+}
+
+function shouldLog(level: LogLevel): boolean {
+  const minLogLevel = logContext.minLogLevel;
+  if (!minLogLevel) {
+    return false;
+  }
+
+  return LOG_LEVEL_PRIORITY[level] >= LOG_LEVEL_PRIORITY[minLogLevel];
+}
+
+// Determine minimum log level based on environment.
 const logContext: LogContext = {
-  enableLogging: process.env.NODE_ENV === 'development' || process.env.ENABLE_LOGGING === 'true',
+  minLogLevel: parseMinLogLevel(process.env.ENABLE_LOGGING),
 };
 
 /**
@@ -30,7 +62,7 @@ function formatLogMessage(message: string, data?: string): string {
  * Log a message if logging is enabled
  */
 export function logMessage(level: LogLevel, message: string, data?: string): void {
-  if (!logContext.enableLogging) {
+  if (!shouldLog(level)) {
     return;
   }
 
