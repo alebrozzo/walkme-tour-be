@@ -104,11 +104,11 @@ router.get('/health-check', async (req, res) => {
   const includePlaces = queryFlag(req.query.includePlaces, true);
   const includeAI = queryFlag(req.query.includeAI, false);
 
-    logMessage(
-      'info',
-      'Health check requested',
-      `includeDb=${includeDb} includePlaces=${includePlaces} includeAI=${includeAI}`,
-    );
+  logMessage(
+    'info',
+    'Health check requested',
+    `includeDb=${includeDb} includePlaces=${includePlaces} includeAI=${includeAI}`,
+  );
 
   const checksRun: string[] = [];
   const checksSkipped: string[] = [];
@@ -147,7 +147,7 @@ router.get('/health-check', async (req, res) => {
   const status = failingChecks.length > 0 ? 'degraded' : 'ok';
   const statusCode = failingChecks.length > 0 ? 503 : 200;
 
-    logMessage('info', 'Health check completed', `status=${status} failing=${failingChecks.join(',') || 'none'}`);
+  logMessage('info', 'Health check completed', `status=${status} failing=${failingChecks.join(',') || 'none'}`);
 
   res.status(statusCode).json({
     status,
