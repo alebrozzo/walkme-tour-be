@@ -6,8 +6,8 @@ interface RequestContext {
 
 const requestContextStorage = new AsyncLocalStorage<RequestContext>();
 
-export function runWithRequestContext(context: RequestContext, callback: () => void): void {
-  requestContextStorage.run(context, callback);
+export function runWithRequestContext<T>(context: RequestContext, callback: () => T): T {
+  return requestContextStorage.run(context, callback);
 }
 
 export function getCorrelationIdFromContext(): string | undefined {
