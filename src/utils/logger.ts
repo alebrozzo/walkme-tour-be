@@ -1,4 +1,5 @@
 type LogLevel = 'log' | 'warn' | 'error';
+import { getCorrelationIdFromContext } from './requestContext.js';
 
 interface LogContext {
   enableLogging: boolean;
@@ -19,8 +20,8 @@ export function setLoggingContext(context: Partial<LogContext>): void {
 /**
  * Format log message with correlation ID and optional context
  */
-function formatLogMessage(message: string, correlationId?: string, data?: string): string {
-  const id = correlationId || 'unknown';
+function formatLogMessage(message: string, data?: string): string {
+  const id = getCorrelationIdFromContext() || 'unknown';
   const baseMsg = `[${id}] ${message}`;
   return data ? `${baseMsg} ${data}` : baseMsg;
 }
@@ -28,12 +29,12 @@ function formatLogMessage(message: string, correlationId?: string, data?: string
 /**
  * Log a message if logging is enabled
  */
-export function logMessage(level: LogLevel, message: string, correlationId?: string, data?: string): void {
+export function logMessage(level: LogLevel, message: string, data?: string): void {
   if (!logContext.enableLogging) {
     return;
   }
 
-  const formattedMsg = formatLogMessage(message, correlationId, data);
+  const formattedMsg = formatLogMessage(message, data);
 
   if (level === 'log') {
     console.log(formattedMsg);

@@ -7,19 +7,19 @@ const router = Router();
 router.get('/', async (req, res) => {
   const { placeId, city, country, language } = req.query;
   const queryLog = JSON.stringify({ placeId, city, country, language });
-  logMessage('log', 'GET city request', req.correlationId, `query=${queryLog}`);
+  logMessage('log', 'GET city request', `query=${queryLog}`);
 
   if (typeof placeId !== 'string' || typeof city !== 'string' || typeof country !== 'string') {
     const msg = 'Missing required query parameters: placeId, city, country';
     res.status(400).json({ error: msg });
-    logMessage('warn', '400 - Missing required query parameters', req.correlationId, `query=${queryLog}`);
+    logMessage('warn', '400 - Missing required query parameters', `query=${queryLog}`);
     return;
   }
 
   if (language !== undefined && typeof language !== 'string') {
     const msg = 'Query parameter language must be a string';
     res.status(400).json({ error: msg });
-    logMessage('warn', '400 - Invalid language parameter', req.correlationId);
+    logMessage('warn', '400 - Invalid language parameter');
     return;
   }
 
@@ -41,7 +41,6 @@ router.get('/', async (req, res) => {
     logMessage(
       'warn',
       '400 - Required parameters blank after sanitization',
-      req.correlationId,
       `placeId=${placeId} city=${city} country=${country}`,
     );
     return;
@@ -52,7 +51,6 @@ router.get('/', async (req, res) => {
     logMessage(
       'log',
       'Successfully retrieved/created tour',
-      req.correlationId,
       `city=${sanitizedCity} country=${sanitizedCountry} placeId=${sanitizedPlaceId}`,
     );
     res.json(tour);
@@ -60,7 +58,6 @@ router.get('/', async (req, res) => {
     logMessage(
       'error',
       `Failed to get/create tour for "${sanitizedCity}, ${sanitizedCountry}" (placeId=${sanitizedPlaceId})`,
-      req.correlationId,
       err instanceof Error ? err.message : String(err),
     );
     const message = err instanceof Error ? err.message : 'Internal server error';

@@ -5,6 +5,7 @@ import citiesRouter from './routes/cities.js';
 import healthRouter from './routes/health.js';
 import { getOrGenerateCorrelationId } from './utils/correlationId.js';
 import { logMessage } from './utils/logger.js';
+import { runWithRequestContext } from './utils/requestContext.js';
 
 const app = express();
 
@@ -19,12 +20,14 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   req.correlationId = getOrGenerateCorrelationId(req);
   // Add correlation ID to response headers so client can receive it if needed
   res.setHeader('X-Correlation-ID', req.correlationId);
-  next();
+
+  // Make correlation ID available to logger throughout this request lifecycle.
+  runWithRequestContext({ correlationId: req.correlationId }, next);
 });
 
 // Request logging middleware
 app.use((req: Request, _res: Response, next: NextFunction) => {
-  logMessage('log', `${req.method} ${req.url}`, req.correlationId, `path=${req.path}`);
+  logMessage('log', `${req.method} ${req.url}`, `path=${req.path}`);
   next();
 });
 
