@@ -56,9 +56,9 @@ export function setLoggingContext(context: Partial<LogContext>): void {
 /**
  * Format log message with correlation ID and optional context
  */
-function formatLogMessage(message: string, data?: string): string {
+function formatLogMessage(level: LogLevel, message: string, data?: string): string {
   const id = getCorrelationIdFromContext() || 'unknown';
-  const baseMsg = `[${id}] ${message}`;
+  const baseMsg = `[${id}] [${level}] ${message}`;
   return data ? `${baseMsg} ${data}` : baseMsg;
 }
 
@@ -70,7 +70,7 @@ export function logMessage(level: LogLevel, message: string, data?: string): voi
     return;
   }
 
-  const formattedMsg = formatLogMessage(message, data);
+  const formattedMsg = formatLogMessage(level, message, data);
 
   if (level === 'info') {
     console.log(formattedMsg);
