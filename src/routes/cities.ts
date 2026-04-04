@@ -6,19 +6,19 @@ const router = Router();
 
 router.get('/', async (req, res) => {
   const { placeId, city, country, language } = req.query;
-  logMessage('log', 'cities', 'GET city request', req, { placeId, city, country, language });
+  logMessage('log', 'GET city request', req, { placeId, city, country, language });
 
   if (typeof placeId !== 'string' || typeof city !== 'string' || typeof country !== 'string') {
     const msg = 'Missing required query parameters: placeId, city, country';
     res.status(400).json({ error: msg });
-    logMessage('warn', 'cities', '400 - Missing required query parameters', req, { placeId, city, country, language });
+    logMessage('warn', '400 - Missing required query parameters', req, { placeId, city, country, language });
     return;
   }
 
   if (language !== undefined && typeof language !== 'string') {
     const msg = 'Query parameter language must be a string';
     res.status(400).json({ error: msg });
-    logMessage('warn', 'cities', '400 - Invalid language parameter', req);
+    logMessage('warn', '400 - Invalid language parameter', req);
     return;
   }
 
@@ -37,7 +37,7 @@ router.get('/', async (req, res) => {
   if (!sanitizedPlaceId || !sanitizedCity || !sanitizedCountry) {
     const msg = 'Missing required query parameters: placeId, city, country';
     res.status(400).json({ error: msg });
-    logMessage('warn', 'cities', '400 - Required parameters blank after sanitization', req, {
+    logMessage('warn', '400 - Required parameters blank after sanitization', req, {
       placeId,
       city,
       country,
@@ -47,7 +47,7 @@ router.get('/', async (req, res) => {
 
   try {
     const tour = await getOrCreateTour(sanitizedPlaceId, sanitizedCity, sanitizedCountry, sanitizedLanguage);
-    logMessage('log', 'cities', 'Successfully retrieved/created tour', req, {
+    logMessage('log', 'Successfully retrieved/created tour', req, {
       city: sanitizedCity,
       country: sanitizedCountry,
       placeId: sanitizedPlaceId,
@@ -56,7 +56,6 @@ router.get('/', async (req, res) => {
   } catch (err) {
     logMessage(
       'error',
-      'cities',
       `Failed to get/create tour for "${sanitizedCity}, ${sanitizedCountry}" (placeId=${sanitizedPlaceId})`,
       req,
       { error: err instanceof Error ? err.message : String(err) },
