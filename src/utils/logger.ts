@@ -13,7 +13,7 @@ const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
 
 function parseMinLogLevel(value: string | undefined): LogLevel | null {
   if (!value) {
-    return process.env.NODE_ENV === 'development' ? 'log' : null;
+    return process.env.NODE_ENV === 'development' ? 'log' : 'warn';
   }
 
   const normalized = value.trim().toLowerCase();
@@ -21,11 +21,11 @@ function parseMinLogLevel(value: string | undefined): LogLevel | null {
     return normalized;
   }
 
-  if (normalized === 'off' || normalized === 'none' || normalized === 'false' || normalized === '0') {
+  if (normalized === 'none' || normalized === 'false') {
     return null;
   }
 
-  return process.env.NODE_ENV === 'development' ? 'log' : null;
+  return process.env.NODE_ENV === 'development' ? 'log' : 'warn';
 }
 
 function shouldLog(level: LogLevel): boolean {
@@ -39,7 +39,7 @@ function shouldLog(level: LogLevel): boolean {
 
 // Determine minimum log level based on environment.
 const logContext: LogContext = {
-  minLogLevel: parseMinLogLevel(process.env.ENABLE_LOGGING),
+  minLogLevel: parseMinLogLevel(process.env.LOG_LEVEL),
 };
 
 /**
