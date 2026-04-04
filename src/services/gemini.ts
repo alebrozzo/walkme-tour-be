@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI, SchemaType } from '@google/generative-ai';
 import type { Schema } from '@google/generative-ai';
 import type { Tour, Stop, StopType } from '../types/tour.js';
+import { logMessage } from '../utils/logger.js';
 import { STOP_TYPES } from '../types/tour.js';
 import { lookupPlaceId } from './places.js';
 
@@ -52,7 +53,7 @@ function isValidStopType(value: string): value is StopType {
 export async function generateTour(placeId: string, city: string, country: string, language = 'en'): Promise<Tour> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    console.error('[gemini] GEMINI_API_KEY is not set');
+    logMessage('error', 'GEMINI_API_KEY is not set');
     throw new Error('GEMINI_API_KEY environment variable is not set');
   }
 
@@ -75,20 +76,28 @@ The "duration" field is the recommended visit time in minutes.
 Omit "price" for free stops; include it as a display string (e.g. "€17") for paid ones.
 Generate all text content (descriptions, names, addresses) in ${language}.`;
 
-  console.log(`[gemini] Generating tour for "${city}, ${country}" (placeId=${placeId}, language=${language})`);
+  logMessage('info', `Generating tour for ${JSON.stringify({ city, country, placeId, language })}`);
 
   let result;
   try {
     result = await geminiModel.generateContent(prompt);
   } catch (err) {
-    console.error(`[gemini] Gemini API call failed for "${city}, ${country}":`, err);
+    logMessage(
+      'error',
+      `Gemini API call failed for ${JSON.stringify({ city, country, placeId, language })}`,
+      String(err),
+    );
     throw err;
   }
 
   const raw = JSON.parse(result.response.text()) as RawTour;
 
   if (!raw.description || !raw.color || !Array.isArray(raw.stops) || raw.stops.length === 0) {
-    console.error(`[gemini] Invalid response received for "${city}, ${country}": missing required fields`, raw);
+    logMessage(
+      'error',
+      `Invalid response received for ${JSON.stringify({ city, country, placeId, language })}`,
+      `missing required fields: ${JSON.stringify(raw)}`,
+    );
     throw new Error('Invalid Gemini response: missing required fields');
   }
 
@@ -132,7 +141,7 @@ Generate all text content (descriptions, names, addresses) in ${language}.`;
     stops,
   };
 
-  console.log(`[gemini] Tour generated for "${city}, ${country}" with ${stops.length} stops`);
+  logMessage('info', `Tour generated for "${city}, ${country}"`, `stops=${stops.length}`);
 
   return tour;
 }
