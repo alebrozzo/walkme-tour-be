@@ -1,5 +1,6 @@
 type LogLevel = 'info' | 'warn' | 'error';
 import { getCorrelationIdFromContext } from './requestContext.js';
+import { generateCorrelationId } from './correlationId.js';
 
 interface LogContext {
   minLogLevel: LogLevel | null;
@@ -46,6 +47,8 @@ const logContext: LogContext = {
   minLogLevel: parseMinLogLevel(process.env.LOG_LEVEL),
 };
 
+const systemCorrelationId = `sys-${generateCorrelationId()}`;
+
 /**
  * Set logging context globally (can be called at app initialization)
  */
@@ -57,7 +60,7 @@ export function setLoggingContext(context: Partial<LogContext>): void {
  * Format log message with correlation ID and optional context
  */
 function formatLogMessage(level: LogLevel, message: string, data?: string): string {
-  const id = getCorrelationIdFromContext() || 'unknown';
+  const id = getCorrelationIdFromContext() || systemCorrelationId;
   const baseMsg = `[${id}] [${level}] ${message}`;
   return data ? `${baseMsg} ${data}` : baseMsg;
 }
