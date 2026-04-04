@@ -1,5 +1,3 @@
-import type { Request } from 'express';
-
 type LogLevel = 'log' | 'warn' | 'error';
 
 interface LogContext {
@@ -21,30 +19,16 @@ export function setLoggingContext(context: Partial<LogContext>): void {
 /**
  * Format log message with correlation ID and optional context
  */
-function formatLogMessage(
-  message: string,
-  correlationId?: string,
-  data?: Record<string, unknown>,
-): string {
+function formatLogMessage(message: string, correlationId?: string, data?: string): string {
   const id = correlationId || 'unknown';
   const baseMsg = `[${id}] ${message}`;
-
-  if (data && Object.keys(data).length > 0) {
-    return `${baseMsg} ${JSON.stringify(data)}`;
-  }
-
-  return baseMsg;
+  return data ? `${baseMsg} ${data}` : baseMsg;
 }
 
 /**
  * Log a message if logging is enabled
  */
-export function logMessage(
-  level: LogLevel,
-  message: string,
-  correlationId?: string,
-  data?: Record<string, unknown>,
-): void {
+export function logMessage(level: LogLevel, message: string, correlationId?: string, data?: string): void {
   if (!logContext.enableLogging) {
     return;
   }

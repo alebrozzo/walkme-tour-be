@@ -24,7 +24,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 // Request logging middleware
 app.use((req: Request, _res: Response, next: NextFunction) => {
-  logMessage('log', `${req.method} ${req.url}`, req.correlationId, { path: req.path });
+  logMessage('log', `${req.method} ${req.url}`, req.correlationId, `path=${req.path}`);
   next();
 });
 

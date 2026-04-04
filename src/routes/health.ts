@@ -43,9 +43,7 @@ async function checkDatabase(): Promise<CheckResult> {
       },
     };
   } catch (err) {
-    logMessage('error', 'Database check failed', undefined, {
-      error: err instanceof Error ? err.message : String(err),
-    });
+    logMessage('error', 'Database check failed', undefined, err instanceof Error ? err.message : String(err));
     return { status: 'error', reason: 'db_check_failed' };
   }
 }
@@ -87,9 +85,7 @@ async function checkGemini(): Promise<CheckResult> {
       },
     };
   } catch (err) {
-    logMessage('error', 'Gemini check failed', undefined, {
-      error: err instanceof Error ? err.message : String(err),
-    });
+    logMessage('error', 'Gemini check failed', undefined, err instanceof Error ? err.message : String(err));
     return { status: 'error', reason: 'gemini_check_failed' };
   }
 }
@@ -108,11 +104,12 @@ router.get('/health-check', async (req, res) => {
   const includePlaces = queryFlag(req.query.includePlaces, true);
   const includeAI = queryFlag(req.query.includeAI, false);
 
-  logMessage('log', 'Health check requested', req, {
-    includeDb,
-    includePlaces,
-    includeAI,
-  });
+  logMessage(
+    'log',
+    'Health check requested',
+    req.correlationId,
+    `includeDb=${includeDb} includePlaces=${includePlaces} includeAI=${includeAI}`,
+  );
 
   const checksRun: string[] = [];
   const checksSkipped: string[] = [];
@@ -151,10 +148,12 @@ router.get('/health-check', async (req, res) => {
   const status = failingChecks.length > 0 ? 'degraded' : 'ok';
   const statusCode = failingChecks.length > 0 ? 503 : 200;
 
-  logMessage('log', 'Health check completed', req, {
-    status,
-    failingChecks,
-  });
+  logMessage(
+    'log',
+    'Health check completed',
+    req.correlationId,
+    `status=${status} failing=${failingChecks.join(',') || 'none'}`,
+  );
 
   res.status(statusCode).json({
     status,
