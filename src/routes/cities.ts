@@ -7,7 +7,7 @@ const router = Router();
 router.get('/', async (req, res) => {
   const { placeId, city, country, language } = req.query;
   const queryLog = JSON.stringify({ placeId, city, country, language });
-  logMessage('log', 'GET city request', `query=${queryLog}`);
+  logMessage('info', 'GET city request', `query=${queryLog}`);
 
   if (typeof placeId !== 'string' || typeof city !== 'string' || typeof country !== 'string') {
     const msg = 'Missing required query parameters: placeId, city, country';
@@ -49,7 +49,7 @@ router.get('/', async (req, res) => {
   try {
     const tour = await getOrCreateTour(sanitizedPlaceId, sanitizedCity, sanitizedCountry, sanitizedLanguage);
     logMessage(
-      'log',
+      'info',
       'Successfully retrieved/created tour',
       `city=${sanitizedCity} country=${sanitizedCountry} placeId=${sanitizedPlaceId}`,
     );

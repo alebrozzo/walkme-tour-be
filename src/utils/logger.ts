@@ -1,4 +1,4 @@
-type LogLevel = 'log' | 'warn' | 'error';
+type LogLevel = 'info' | 'warn' | 'error';
 import { getCorrelationIdFromContext } from './requestContext.js';
 
 interface LogContext {
@@ -6,26 +6,30 @@ interface LogContext {
 }
 
 const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
-  log: 0,
+  info: 0,
   warn: 1,
   error: 2,
 };
 
 function parseMinLogLevel(value: string | undefined): LogLevel | null {
   if (!value) {
-    return process.env.NODE_ENV === 'development' ? 'log' : 'warn';
+    return process.env.NODE_ENV === 'development' ? 'info' : 'warn';
   }
 
   const normalized = value.trim().toLowerCase();
-  if (normalized === 'log' || normalized === 'warn' || normalized === 'error') {
+  if (normalized === 'info' || normalized === 'warn' || normalized === 'error') {
     return normalized;
+  }
+
+  if (normalized === 'log') {
+    return 'info';
   }
 
   if (normalized === 'none' || normalized === 'false') {
     return null;
   }
 
-  return process.env.NODE_ENV === 'development' ? 'log' : 'warn';
+  return process.env.NODE_ENV === 'development' ? 'info' : 'warn';
 }
 
 function shouldLog(level: LogLevel): boolean {
@@ -68,7 +72,7 @@ export function logMessage(level: LogLevel, message: string, data?: string): voi
 
   const formattedMsg = formatLogMessage(message, data);
 
-  if (level === 'log') {
+  if (level === 'info') {
     console.log(formattedMsg);
   } else if (level === 'warn') {
     console.warn(formattedMsg);
