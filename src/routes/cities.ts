@@ -6,22 +6,13 @@ const router = Router();
 
 router.get('/', async (req, res) => {
   const { placeId, city, country, language } = req.query;
-  logMessage(
-    'log',
-    'GET city request',
-    req.correlationId,
-    `placeId=${placeId} city=${city} country=${country} language=${language}`,
-  );
+  const queryLog = JSON.stringify({ placeId, city, country, language });
+  logMessage('log', 'GET city request', req.correlationId, `query=${queryLog}`);
 
   if (typeof placeId !== 'string' || typeof city !== 'string' || typeof country !== 'string') {
     const msg = 'Missing required query parameters: placeId, city, country';
     res.status(400).json({ error: msg });
-    logMessage(
-      'warn',
-      '400 - Missing required query parameters',
-      req.correlationId,
-      `placeId=${placeId} city=${city} country=${country} language=${language}`,
-    );
+    logMessage('warn', '400 - Missing required query parameters', req.correlationId, `query=${queryLog}`);
     return;
   }
 
