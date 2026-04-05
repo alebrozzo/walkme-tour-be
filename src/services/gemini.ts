@@ -11,14 +11,13 @@ export const GEMINI_MODEL = 'gemini-2.5-flash';
 // stops lack `id`/`order` (assigned during transformation) and `type` is an
 // unvalidated string until confirmed against the STOP_TYPES list.
 type RawStop = Omit<Stop, 'id' | 'order' | 'type' | 'relevance'> & { type: string; relevance: number };
-type RawTour = Pick<Tour, 'description' | 'color'> & { stops: RawStop[] };
+type RawTour = Pick<Tour, 'description'> & { stops: RawStop[] };
 
 // Structured JSON schema enforced by Gemini — guarantees all required fields are present.
 const responseSchema: Schema = {
   type: SchemaType.OBJECT,
   properties: {
     description: { type: SchemaType.STRING },
-    color: { type: SchemaType.STRING },
     stops: {
       type: SchemaType.ARRAY,
       items: {
@@ -44,7 +43,7 @@ const responseSchema: Schema = {
       },
     },
   },
-  required: ['description', 'color', 'stops'],
+  required: ['description', 'stops'],
 };
 
 function isValidStopType(value: string): value is StopType {
@@ -72,7 +71,6 @@ Very popular cities (e.g. Paris, New York, London, Rome, Tokyo, Barcelona, Amste
 Order the stops logically for a walking tour.
 For each stop provide accurate GPS coordinates.
 The "type" field must be one of: landmark, museum, neighborhood, temple, shrine, park, piazza, market, beach.
-The "color" field should be a hex color that represents the city's character (e.g. "#2C3E8C" for Paris).
 The "duration" field is the recommended visit time in minutes.
 Omit "price" for free stops; include it as a display string (e.g. "€17") for paid ones.
 The "relevance" field must be an integer: 1 = must see, 2 = not so important but good to see, 3 = optional if you have time. It is okay if no stop has relevance 1.
@@ -94,7 +92,7 @@ Generate all text content (descriptions, names, addresses) in ${language}.`;
 
   const raw = JSON.parse(result.response.text()) as RawTour;
 
-  if (!raw.description || !raw.color || !Array.isArray(raw.stops) || raw.stops.length === 0) {
+  if (!raw.description || !Array.isArray(raw.stops) || raw.stops.length === 0) {
     logMessage(
       'error',
       `Invalid response received for ${JSON.stringify({ city, country, placeId, language })}`,
@@ -149,7 +147,6 @@ Generate all text content (descriptions, names, addresses) in ${language}.`;
     country,
     language,
     description: raw.description,
-    color: raw.color,
     stops,
   };
 

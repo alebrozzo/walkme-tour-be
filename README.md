@@ -111,7 +111,6 @@ curl "http://localhost:3000/api/cities?placeId=ChIJvQz7nfzKvJURjlC4fXQYlTk&city=
   "city": "Paris",
   "country": "France",
   "description": "Discover the City of Light on foot...",
-  "color": "#2C3E8C",
   "imageUrl": "https://...",
   "stops": [
     {
@@ -137,7 +136,6 @@ curl "http://localhost:3000/api/cities?placeId=ChIJvQz7nfzKvJURjlC4fXQYlTk&city=
 | `city`        | `string`  | City name                                       |
 | `country`     | `string`  | Country name                                    |
 | `description` | `string`  | Short tour description                          |
-| `color`       | `string`  | Hex colour used for UI theming (e.g. `#2C3E8C`) |
 | `imageUrl`    | `string?` | Optional hero image URL                         |
 | `stops`       | `Stop[]`  | Ordered list of stops                           |
 

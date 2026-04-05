@@ -12,7 +12,6 @@ function tourDocToTour(doc: TourDoc): Tour {
     country: doc.country,
     language: doc.language,
     description: doc.description,
-    color: doc.color,
     stops: doc.stops,
   };
   if (doc.imageUrl !== undefined) {
@@ -58,7 +57,6 @@ export async function getOrCreateTour(placeId: string, city: string, country: st
     country: tour.country,
     language: tour.language,
     description: tour.description,
-    color: tour.color,
     stops: tour.stops,
   };
   if (tour.imageUrl !== undefined) {
