@@ -48,7 +48,6 @@ export interface Tour {
   country: string;
   language: string;
   description: string;
-  color: string;
   imageUrl?: string;
   stops: Stop[];
 }

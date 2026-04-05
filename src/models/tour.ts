@@ -8,7 +8,6 @@ export interface TourDoc {
   country: string;
   language: string;
   description: string;
-  color: string;
   imageUrl?: string;
   stops: Stop[];
 }
@@ -47,7 +46,6 @@ const tourSchema = new Schema<TourDoc>(
     country: { type: String, required: true },
     language: { type: String, required: true },
     description: { type: String, required: true },
-    color: { type: String, required: true },
     imageUrl: { type: String },
     stops: { type: [stopSchema], required: true },
   },
