@@ -38,6 +38,7 @@ export interface Stop {
   duration: number;
   price?: string;
   googlePlaceId?: string;
+  relevance: 1 | 2 | 3;
 }
 
 export interface Tour {
